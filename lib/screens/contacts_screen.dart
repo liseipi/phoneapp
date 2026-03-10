@@ -56,9 +56,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             child: Consumer<ContactProvider>(
               builder: (context, contactProvider, child) {
                 if (contactProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (contactProvider.contacts.isEmpty) {
@@ -66,24 +64,15 @@ class _ContactsScreenState extends State<ContactsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.contacts_outlined,
-                          size: 80,
-                          color: Colors.grey.shade400,
-                        ),
+                        Icon(Icons.contacts_outlined,
+                            size: 80, color: Colors.grey.shade400),
                         const SizedBox(height: 16),
-                        Text(
-                          '暂无联系人',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
+                        Text('暂无联系人',
+                            style: TextStyle(
+                                fontSize: 18, color: Colors.grey.shade600)),
                         const SizedBox(height: 8),
                         TextButton(
-                          onPressed: () {
-                            contactProvider.loadContacts();
-                          },
+                          onPressed: () => contactProvider.loadContacts(),
                           child: const Text('刷新'),
                         ),
                       ],
@@ -104,9 +93,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.read<ContactProvider>().loadContacts();
-        },
+        onPressed: () => context.read<ContactProvider>().loadContacts(),
         child: const Icon(Icons.refresh),
       ),
     );
@@ -120,8 +107,16 @@ class _ContactTile extends StatelessWidget {
 
   Future<void> _makeCall(BuildContext context) async {
     final callProvider = Provider.of<CallProvider>(context, listen: false);
-    
-    // 导航到通话界面
+
+    // 先更新通话状态
+    await callProvider.startCall(
+      contact.phoneNumber,
+      contactName: contact.name,
+    );
+
+    if (!context.mounted) return;
+
+    // 导航到通话界面（录音在 CallScreen.initState 中启动）
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -132,12 +127,6 @@ class _ContactTile extends StatelessWidget {
       ),
     );
 
-    // 启动通话
-    await callProvider.startCall(
-      contact.phoneNumber,
-      contactName: contact.name,
-    );
-    
     // 实际拨打电话
     await FlutterPhoneDirectCaller.callNumber(contact.phoneNumber);
   }
@@ -155,10 +144,8 @@ class _ContactTile extends StatelessWidget {
           ),
         ),
       ),
-      title: Text(
-        contact.name,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-      ),
+      title: Text(contact.name,
+          style: const TextStyle(fontWeight: FontWeight.w500)),
       subtitle: Text(contact.phoneNumber),
       trailing: IconButton(
         icon: const Icon(Icons.phone),
@@ -181,11 +168,17 @@ class _ContactDetailSheet extends StatelessWidget {
   const _ContactDetailSheet({required this.contact});
 
   Future<void> _makeCall(BuildContext context) async {
-    Navigator.pop(context); // 关闭底部表单
-    
+    Navigator.pop(context);
+
     final callProvider = Provider.of<CallProvider>(context, listen: false);
-    
-    // 导航到通话界面
+
+    await callProvider.startCall(
+      contact.phoneNumber,
+      contactName: contact.name,
+    );
+
+    if (!context.mounted) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -196,13 +189,6 @@ class _ContactDetailSheet extends StatelessWidget {
       ),
     );
 
-    // 启动通话
-    await callProvider.startCall(
-      contact.phoneNumber,
-      contactName: contact.name,
-    );
-    
-    // 实际拨打电话
     await FlutterPhoneDirectCaller.callNumber(contact.phoneNumber);
   }
 
@@ -226,21 +212,12 @@ class _ContactDetailSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            contact.name,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(contact.name,
+              style:
+              const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(
-            contact.phoneNumber,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey.shade600,
-            ),
-          ),
+          Text(contact.phoneNumber,
+              style: TextStyle(fontSize: 18, color: Colors.grey.shade600)),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,

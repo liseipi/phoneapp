@@ -38,9 +38,13 @@ class _DialerScreenState extends State<DialerScreen> {
     if (_phoneNumber.isEmpty) return;
 
     final callProvider = Provider.of<CallProvider>(context, listen: false);
-    
-    // 导航到通话界面
+
+    // 先更新通话状态
+    await callProvider.startCall(_phoneNumber);
+
     if (!mounted) return;
+
+    // 导航到通话界面（录音在 CallScreen.initState 中启动）
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -48,9 +52,6 @@ class _DialerScreenState extends State<DialerScreen> {
       ),
     );
 
-    // 启动通话
-    await callProvider.startCall(_phoneNumber);
-    
     // 实际拨打电话
     await FlutterPhoneDirectCaller.callNumber(_phoneNumber);
   }
@@ -83,8 +84,6 @@ class _DialerScreenState extends State<DialerScreen> {
                           : Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  if (_phoneNumber.isNotEmpty)
-                    const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -113,21 +112,17 @@ class _DialerScreenState extends State<DialerScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // 删除按钮
                 IconButton(
                   onPressed: _phoneNumber.isNotEmpty ? _deleteDigit : null,
                   icon: const Icon(Icons.backspace_outlined),
                   iconSize: 28,
                 ),
-                // 拨打按钮
                 FloatingActionButton(
                   onPressed: _phoneNumber.isNotEmpty ? _makeCall : null,
-                  backgroundColor: _phoneNumber.isNotEmpty
-                      ? Colors.green
-                      : Colors.grey,
+                  backgroundColor:
+                  _phoneNumber.isNotEmpty ? Colors.green : Colors.grey,
                   child: const Icon(Icons.phone, size: 32),
                 ),
-                // 清空按钮
                 IconButton(
                   onPressed: _phoneNumber.isNotEmpty ? _clearNumber : null,
                   icon: const Icon(Icons.clear),
@@ -162,10 +157,7 @@ class _DialerScreenState extends State<DialerScreen> {
         ),
         child: Text(
           digit,
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w400,
-          ),
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w400),
         ),
       ),
     );

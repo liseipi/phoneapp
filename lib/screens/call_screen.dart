@@ -25,13 +25,25 @@ class _CallScreenState extends State<CallScreen> {
   void initState() {
     super.initState();
     _startTimer();
+    // 在界面渲染完成后再启动录音，确保 Provider 已就绪
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startRecording();
+    });
+  }
+
+  Future<void> _startRecording() async {
+    if (!mounted) return;
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    await callProvider.startRecording();
   }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _seconds++;
-      });
+      if (mounted) {
+        setState(() {
+          _seconds++;
+        });
+      }
     });
   }
 
@@ -48,6 +60,7 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Future<void> _endCall() async {
+    _timer?.cancel();
     final callProvider = Provider.of<CallProvider>(context, listen: false);
     await callProvider.endCall();
     if (mounted) {
@@ -63,7 +76,7 @@ class _CallScreenState extends State<CallScreen> {
         child: Column(
           children: [
             const SizedBox(height: 60),
-            
+
             // 联系人/号码显示
             Text(
               widget.contactName ?? widget.phoneNumber,
@@ -124,7 +137,7 @@ class _CallScreenState extends State<CallScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        callProvider.isRecording ? '正在录音...' : '录音已停止',
+                        callProvider.isRecording ? '正在录音...' : '录音准备中...',
                         style: TextStyle(
                           color: callProvider.isRecording
                               ? Colors.red.shade900
@@ -166,7 +179,7 @@ class _CallScreenState extends State<CallScreen> {
                     ],
                   ),
                   const SizedBox(height: 60),
-                  
+
                   // 挂断按钮
                   FloatingActionButton(
                     onPressed: _endCall,
